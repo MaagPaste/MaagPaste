@@ -111,6 +111,24 @@ def fetch_all(session: Session):
     return resp.json() or {}
 
 
+def push_screen_frame(session: Session, b64_jpeg):
+    session.ensure_fresh()
+    url = f"{DB_URL}/users/{session.uid}/screen.json"
+    resp = requests.put(
+        url, params={"auth": session.id_token},
+        json={"frame": b64_jpeg, "active": True, "ts": time.time()},
+        timeout=10,
+    )
+    if resp.status_code != 200:
+        raise FirebaseError(f"Screen push failed: {resp.text}")
+
+
+def set_screen_inactive(session: Session):
+    session.ensure_fresh()
+    url = f"{DB_URL}/users/{session.uid}/screen/active.json"
+    requests.put(url, params={"auth": session.id_token}, json=False, timeout=10)
+
+
 def get_settings(session: Session):
     session.ensure_fresh()
     url = f"{DB_URL}/users/{session.uid}/settings.json"
